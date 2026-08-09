@@ -208,11 +208,11 @@ http://127.0.0.1:5000
 
 The application predicts one of the following:
 
-### ✅ Customer Will Not Churn
+### ✅ Customer Will Stay
 
 or
 
-### ⚠️ Customer Will Churn
+### ⚠️ Customer Will Not Stay
 
 ---
 
