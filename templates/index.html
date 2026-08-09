@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Customer Churn Prediction</title>
+<title>Customer Retention Prediction System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
 
@@ -33,11 +33,10 @@
         align-items: center;         
         justify-content: center;     
     }
-
     
     .wrap {
         width: 80vw;
-        height: 80vh;
+        min-height: 80vh;
         display: flex;
         flex-direction: column;
     }
@@ -49,10 +48,8 @@
         font-weight: 800;
     }
     header p { color: var(--muted); font-size: 14.5px; margin-top: 4px; }
-
     
     .card {
-        flex: 1;                 
         display: flex;
         flex-direction: column;
         background: var(--card);
@@ -60,17 +57,17 @@
         border-radius: 18px;
         padding: 30px 34px;
         box-shadow: 0 12px 32px rgba(0,0,0,0.35);
-        min-height: 0;            
     }
 
+    /* FIX: grid-auto-rows with a minmax floor instead of a fixed
+       "repeat(5, 1fr) auto" row template — rows now keep a sane minimum
+       height instead of being compressed to fit a fixed-height parent */
     form {
-        flex: 1;
         display: grid;
-        grid-template-columns: repeat(4, 1fr);   
-        grid-template-rows: repeat(5, 1fr) auto; 
-        align-content: space-evenly;             
-        column-gap: 60px;                        
-        row-gap: 34px;                            
+        grid-template-columns: repeat(4, 1fr);
+        grid-auto-rows: minmax(70px, auto);
+        column-gap: 60px;
+        row-gap: 34px;
     }
 
     .field { display: flex; flex-direction: column; justify-content: center; gap: 6px; }
@@ -105,7 +102,7 @@
         border-color: #8B5CF6;
         box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
     }
-    
+
     button[type="submit"] {
         grid-column: 2 / -2;
         width : 95%;
@@ -124,7 +121,7 @@
     }
 
     button[type="submit"]:hover { transform: translateY(-1px); filter: brightness(1.08); }
-    
+
     .result {
         margin-top: 22px;
         background: var(--card);
@@ -174,11 +171,11 @@
     footer { text-align: center; color: #6E6690; font-size: 12px; margin-top: 26px; }
 
     @media (max-width: 1100px) {
-        form { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(7, 1fr) auto; column-gap: 44px; row-gap: 26px; }
+        form { grid-template-columns: repeat(3, 1fr); column-gap: 44px; row-gap: 26px; }
     }
     @media (max-width: 760px) {
         .wrap { height: auto; }
-        form { grid-template-columns: repeat(2, 1fr); grid-template-rows: none; column-gap: 34px; row-gap: 22px; }
+        form { grid-template-columns: repeat(2, 1fr); column-gap: 34px; row-gap: 22px; }
     }
     @media (max-width: 460px) {
         .wrap { width: 92vw; }
@@ -191,8 +188,8 @@
 
 <div class="wrap">
   <header>
-    <h1>Customer Churn Prediction</h1>
-    <p>Enter an account's profile below to estimate the likelihood it churns.</p>
+    <h1>Customer Retention Prediction System</h1>
+    <p>Enter an account's profile below to estimate the likelihood it stays.</p>
   </header>
 
   <div class="card">
