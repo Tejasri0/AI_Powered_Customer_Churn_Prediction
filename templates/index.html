@@ -1,1 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Customer Churn Prediction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
 
+<style>
+    :root {
+        --card: #201A34;          /* dark plum card background instead of white */
+        --card-soft: #2A2245;     /* input background, slightly lighter */
+        --border: #3A3160;
+        --text: #F1EEFB;
+        --muted: #A79FC7;
+        --primary-grad: linear-gradient(135deg, #8B5CF6, #EC4899);
+        --danger: #FF6B87;
+        --danger-bg: #3A1E2C;
+        --success: #37D399;
+        --success-bg: #163A2E;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+        background: linear-gradient(160deg, #120E24, #201A3A 55%, #2B1E45);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        min-height: 100vh;
+        padding: 24px 4vw;
+        display: flex;
+        align-items: center;         /* vertically centers the content       */
+        justify-content: center;     /* so there's no leftover gap at bottom */
+    }
+
+    /* wrap now takes 80% of the page's width and height */
+    .wrap {
+        width: 80vw;
+        height: 80vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    header { margin-bottom: 24px; }
+    h1 {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: clamp(24px, 3vw, 32px);
+        font-weight: 800;
+    }
+    header p { color: var(--muted); font-size: 14.5px; margin-top: 4px; }
+
+    /* One single card, no numbered sections */
+    .card {
+        flex: 1;                 /* fills the remaining height inside .wrap */
+        display: flex;
+        flex-direction: column;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 30px 34px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+        min-height: 0;            /* allows children to shrink/grow properly */
+    }
+
+    form {
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);   /* exactly 4 columns per row */
+        grid-template-rows: repeat(5, 1fr) auto; /* 5 field rows + button row, all stretched */
+        align-content: space-evenly;             /* spreads rows evenly, boxes stay compact */
+        column-gap: 60px;                        /* clear separation between columns */
+        row-gap: 34px;                            /* clear separation between rows too */
+    }
+
+    .field { display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+
+    label { font-size: 13px; font-weight: 600; color: var(--text); }
+
+    input, select {
+        width: 88%;
+        min-height: 50px;
+        background: var(--card-soft);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 9px 16px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        outline: none;
+        transition: all 0.15s ease;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+
+    select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9'%3E%3Cpath d='M1 1l6 6 6-6' stroke='%23A79FC7' stroke-width='1.6' fill='none'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        padding-right: 38px;
+    }
+
+    input::placeholder { color: #6E6690; }
+
+    input:focus, select:focus {
+        border-color: #8B5CF6;
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+    }
+
+    /* Button spans the full grid width, its own row */
+    button[type="submit"] {
+        grid-column: 2 / -2;
+        width : 95%;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        background: var(--primary-grad);
+        border: none;
+        border-radius: 12px;
+        padding: 13px;
+        min-height: 50px;
+        cursor: pointer;
+        box-shadow: 0 10px 24px -8px rgba(139, 92, 246, 0.5);
+        transition: transform 0.12s, filter 0.15s;
+    }
+
+    button[type="submit"]:hover { transform: translateY(-1px); filter: brightness(1.08); }
+
+    /* Result section */
+    .result {
+        margin-top: 22px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    }
+
+    .result-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .verdict { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 20px; font-weight: 800; }
+    .verdict.risk { color: var(--danger); }
+    .verdict.safe { color: var(--success); }
+
+    .pill {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 5px 13px;
+        border-radius: 999px;
+    }
+    .pill.risk { background: var(--danger-bg); color: var(--danger); }
+    .pill.safe { background: var(--success-bg); color: var(--success); }
+
+    .risk-row { display: flex; align-items: center; gap: 14px; }
+    .risk-track { flex: 1; height: 9px; background: var(--card-soft); border-radius: 99px; overflow: hidden; }
+    .risk-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #37D399, #F2B33D 55%, var(--danger)); }
+    .risk-pct { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; font-size: 14px; }
+
+    .error-box {
+        margin-top: 22px;
+        background: var(--danger-bg);
+        border: 1px solid #5A2C3B;
+        color: var(--danger);
+        border-radius: 14px;
+        padding: 15px 18px;
+        font-size: 13.5px;
+    }
+
+    footer { text-align: center; color: #6E6690; font-size: 12px; margin-top: 26px; }
+
+    @media (max-width: 1100px) {
+        form { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(7, 1fr) auto; column-gap: 44px; row-gap: 26px; }
+    }
+    @media (max-width: 760px) {
+        .wrap { height: auto; }
+        form { grid-template-columns: repeat(2, 1fr); grid-template-rows: none; column-gap: 34px; row-gap: 22px; }
+    }
+    @media (max-width: 460px) {
+        .wrap { width: 92vw; }
+        form { grid-template-columns: 1fr; }
+        .card { padding: 20px; }
+    }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Customer Churn Prediction</h1>
+    <p>Enter an account's profile below to estimate the likelihood it churns.</p>
+  </header>
+
+  <div class="card">
+    <form method="POST">
+
+      <div class="field">
+        <label>Gender</label>
+        <select name="gender_Male" required>
+          <option value="">Select</option>
+          <option value="1">Male</option>
+          <option value="0">Female</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Senior Citizen</label>
+        <select name="SeniorCitizen" required>
+          <option value="">Select</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Partner</label>
+        <select name="Partner_Yes" required>
+          <option value="">Select</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Dependents</label>
+        <select name="Dependents_Yes" required>
+          <option value="">Select</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>SIM Provider</label>
+        <select name="sim_type" required>
+          <option value="">Select</option>
+          <option value="Airtel">Airtel</option>
+          <option value="BSNL">BSNL</option>
+          <option value="Jio">Jio</option>
+          <option value="Vodafone">Vodafone</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Tenure (Months)</label>
+        <input type="number" step="any" name="tenure_yeo" placeholder="e.g. 24" required>
+      </div>
+
+      <div class="field">
+        <label>Monthly Charges ($)</label>
+        <input type="number" step="any" name="MonthlyCharges_yeo" placeholder="e.g. 65.50" required>
+      </div>
+
+      <div class="field">
+        <label>Total Charges ($)</label>
+        <input type="number" step="any" name="TotalCharges_const_yeo" placeholder="e.g. 1580.00" required>
+      </div>
+
+      <div class="field">
+        <label>Paperless Billing</label>
+        <select name="PaperlessBilling_Yes" required>
+          <option value="">Select</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Payment Method</label>
+        <select name="PaymentMethod" required>
+          <option value="">Select</option>
+          <option value="Bank transfer (automatic)">Bank Transfer (automatic)</option>
+          <option value="Credit card (automatic)">Credit Card (automatic)</option>
+          <option value="Electronic check">Electronic Check</option>
+          <option value="Mailed check">Mailed Check</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Phone Service</label>
+        <select name="PhoneService_Yes" required>
+          <option value="">Select</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Multiple Lines</label>
+        <select name="MultipleLines" required>
+          <option value="">Select</option>
+          <option value="No phone service">No phone service</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Internet Service</label>
+        <select name="InternetService" required>
+          <option value="">Select</option>
+          <option value="DSL">DSL</option>
+          <option value="Fiber optic">Fiber Optic</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Online Security</label>
+        <select name="OnlineSecurity" required>
+          <option value="">Select</option>
+          <option value="No internet service">No internet service</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Online Backup</label>
+        <select name="OnlineBackup" required>
+          <option value="">Select</option>
+          <option value="No internet service">No internet service</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Device Protection</label>
+        <select name="DeviceProtection" required>
+          <option value="">Select</option>
+          <option value="No internet service">No internet service</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Tech Support</label>
+        <select name="TechSupport" required>
+          <option value="">Select</option>
+          <option value="No internet service">No internet service</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Streaming TV</label>
+        <select name="StreamingTV" required>
+          <option value="">Select</option>
+          <option value="No internet service">No internet service</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Streaming Movies</label>
+        <select name="StreamingMovies" required>
+          <option value="">Select</option>
+          <option value="No internet service">No internet service</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Contract</label>
+        <select name="Contract_res" required>
+          <option value="">Select</option>
+          <option value="0">Month-to-Month</option>
+          <option value="1">One Year</option>
+          <option value="2">Two Year</option>
+        </select>
+      </div>
+
+      <button type="submit">🔍 Predict Customer Churn</button>
+    </form>
+  </div>
+
+  {% if error %}
+  <div class="error-box">⚠ {{ error }}</div>
+  {% elif prediction is not none %}
+  <div class="result">
+    <div class="result-top">
+      <div class="verdict {{ 'risk' if pred == 1 else 'safe' }}">{{ prediction }}</div>
+      <span class="pill {{ 'risk' if pred == 1 else 'safe' }}">{{ 'HIGH ATTENTION' if pred == 1 else 'STABLE ACCOUNT' }}</span>
+    </div>
+
+    {% if risk_percent is not none %}
+    <div class="risk-row">
+      <div class="risk-track">
+        <div class="risk-fill" style="width:{{ risk_percent }}%;"></div>
+      </div>
+      <div class="risk-pct">{{ risk_percent }}%</div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <footer>Model-driven estimate, not a guarantee.</footer>
+</div>
+
+</body>
+</html>
