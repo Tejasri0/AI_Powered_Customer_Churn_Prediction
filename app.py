@@ -212,9 +212,9 @@ def index():
                 risk_percent = None
 
             if pred == 1:
-                prediction = "Customer Will Churn"
+                prediction = "Customer Will not Stay"
             else:
-                prediction = "Customer Will Not Churn"
+                prediction = "Customer Will Stay"
 
         except Exception as e:
             error = f"Could not generate a prediction — {e}"
